@@ -1,0 +1,4 @@
+﻿  zip_file.cpp
+D:\С_program\shannon\shannon\zip_file.cpp(85,26): warning C4267: инициализация: преобразование из "size_t" в "char"; возможна потеря данных
+D:\С_program\shannon\shannon\zip_file.cpp(117,1): warning C4102: cf_0: неиспользованная метка
+  shannon.vcxproj -> D:\С_program\shannon\Debug\shannon.exe
