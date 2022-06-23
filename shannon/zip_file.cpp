@@ -20,37 +20,28 @@ char reverse_bit(char value) {
 	return mirror_tmp;
 }
 
-ZIP_::ZIP_(std::string decoder_pth, std::string code_listTXT_pth,
-	std::string bin_file_pth) : bin_file_path(bin_file_pth), correct_bin_code(true), 
-								correct_bin_code_size(0) {
-	this->decoder.open(decoder_pth.c_str());
-	this->code_listTXT.open(code_listTXT_pth.c_str());
-	if (!this->bin_file_write.is_open())
-		this->bin_file_write.open(bin_file_pth.c_str(), ios::binary);
-	if (!this->decoder.is_open())
-		throw runtime_error("file decoder not found");
-	if (!this->code_listTXT.is_open())
-		throw runtime_error("file code_list not found");
-}
+ZIP_::ZIP_(std::string decoder_pth, std::string tmpTXT_pth,
+	std::string bin_file_pth) : 
+	decoder_path(decoder_pth),tmpTXT_path(tmpTXT_pth), bin_file_path(bin_file_pth),
+	correct_bin_code(true), correct_bin_code_size(0) {}
 
 ZIP_::~ZIP_() {
-	this->decoder.close();
-	this->code_listTXT.close();
-	if (this->bin_file_write.is_open())
-		this->bin_file_write.close();
-	if (this->bin_file_read.is_open())
-		this->bin_file_read.close();
+	f_decoder_read.close();
+	f_decoder_write.close();
+	f_bin_file_read.close();
+	f_bin_file_write.close();
+	f_tmpTXT_read.close();
+	f_tmpTXT_write.close();
 }
 
 void ZIP_::in_zip() {
 	//cout << "========================INzip\n";
-	if (bin_file_read.is_open())
-		bin_file_read.close();
+	f_tmpTXT_read.open(tmpTXT_path.c_str());
 	string bin_line; //входная строка
 	vector <char> byte_v;
 	char byte_ = 0; //записывающий байт
 	int shift = 8; //сдвиг
-	getline(code_listTXT, bin_line); //считываем строку
+	getline(f_tmpTXT_read, bin_line); //считываем строку
 	for (size_t i = 0; i < bin_line.length(); i++) { //пробегаемся по строке 
 		char bit = (char)(bin_line[i] - '0'); //считываем бит
 		
@@ -71,7 +62,7 @@ void ZIP_::in_zip() {
 			}
 			//отзеркалим число
 			byte_ = reverse_bit(byte_);
-			if (shift != 0) {//если байт не заполнен до концк
+			if (shift != 0) {//если байт не заполнен до конца
 				byte_ <<= shift; //сдвиг влево
 				correct_bin_code = false;
 				correct_bin_code_size = shift;
@@ -82,32 +73,35 @@ void ZIP_::in_zip() {
 		}
 	}
 	//запись в битовый файл
+	f_bin_file_write.open(bin_file_path.c_str(), ios::binary);
 	char len = byte_v.size();
-	this->bin_file_write.write((char*)&len, sizeof(char)); //запись числа байтов
-	this->bin_file_write.write((char*)&correct_bin_code_size, sizeof(char));
+	this->f_bin_file_write.write((char*)&len, sizeof(char)); //запись числа байтов
+	this->f_bin_file_write.write((char*)&correct_bin_code_size, sizeof(char));
 	for (size_t i = 0; i < byte_v.size(); i++)
-		this->bin_file_write.write((char*)&byte_v[i], sizeof(char));
+		this->f_bin_file_write.write((char*)&byte_v[i], sizeof(char));
+
+	//закрыте файлов
+	f_tmpTXT_read.close();
+	f_bin_file_write.close();
 }
 
 void ZIP_::out_zip() {
 	//cout << "========================UNzip\n";
 	//закрываем файл для записи, переоткрываем для чтения
-	if (this->bin_file_write.is_open())
-		this->bin_file_write.close();
-	this->bin_file_read.open(this->bin_file_path.c_str(), ios::binary);
+	f_bin_file_read.open(bin_file_path.c_str(), ios::binary);
 
 	//считываем данные
 	if (!line.empty()) //очистка строки
 		line.clear();
 
 	char size_byte;
-	bin_file_read.read(&size_byte, sizeof(char));
-	bin_file_read.read(&correct_bin_code_size, sizeof(char));
+	f_bin_file_read.read(&size_byte, sizeof(char));
+	f_bin_file_read.read(&correct_bin_code_size, sizeof(char));
 	!correct_bin_code_size ? correct_bin_code = false : correct_bin_code = true;
 
 	char data_byte; //данные бинарного файла
-	while (!bin_file_read.eof()) { //чтение файла
-		bin_file_read.read(&data_byte, sizeof(char));	
+	while (!f_bin_file_read.eof()) { //чтение файла
+		f_bin_file_read.read(&data_byte, sizeof(char));	
 		char bit;
 
 		for (size_t i = 0; i < sizeof(char) * 8; i++) {
@@ -123,5 +117,12 @@ void ZIP_::out_zip() {
 		}
 	}
 	line.resize(line.size() - 8/*нулевой бит*/ - (correct_bin_code ? correct_bin_code_size : 0)/*удаление лишних битов*/);
-	//cout << line;
+	
+	//запись в tmp.txt
+	f_tmpTXT_write.open(tmpTXT_path.c_str());
+	f_tmpTXT_write << line;
+
+	//закрыте файлов 
+	f_bin_file_read.close();
+	f_tmpTXT_write.close();
 }
