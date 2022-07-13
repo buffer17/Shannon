@@ -20,9 +20,9 @@ char reverse_bit(char value) {
 	return mirror_tmp;
 }
 
-ZIP_::ZIP_(std::string decoder_pth, std::string tmpTXT_pth,
+ZIP_::ZIP_(std::string decoder_pth, DECODER& dec,
 	std::string bin_file_pth) : 
-	decoder_path(decoder_pth),tmpTXT_path(tmpTXT_pth), bin_file_path(bin_file_pth),
+	decoder_path(decoder_pth), dec_(dec), bin_file_path(bin_file_pth),
 	correct_bin_code(true), correct_bin_code_size(0) {}
 
 ZIP_::~ZIP_() {
@@ -30,18 +30,19 @@ ZIP_::~ZIP_() {
 	f_decoder_write.close();
 	f_bin_file_read.close();
 	f_bin_file_write.close();
-	f_tmpTXT_read.close();
-	f_tmpTXT_write.close();
+	//f_tmpTXT_read.close();
+	//f_tmpTXT_write.close();
 }
 
 void ZIP_::in_zip() {
 	//cout << "========================INzip\n";
-	f_tmpTXT_read.open(tmpTXT_path.c_str());
+	//f_tmpTXT_read.open(tmpTXT_path.c_str());
 	string bin_line; //входная строка
 	vector <char> byte_v;
 	char byte_ = 0; //записывающий байт
 	int shift = 8; //сдвиг
-	getline(f_tmpTXT_read, bin_line); //считываем строку
+	//getline(f_tmpTXT_read, bin_line); //считываем строку
+	bin_line = dec_._get_line();
 	for (size_t i = 0; i < bin_line.length(); i++) { //пробегаемся по строке 
 		char bit = (char)(bin_line[i] - '0'); //считываем бит
 		
@@ -81,7 +82,7 @@ void ZIP_::in_zip() {
 		this->f_bin_file_write.write((char*)&byte_v[i], sizeof(char));
 
 	//закрыте файлов
-	f_tmpTXT_read.close();
+	//f_tmpTXT_read.close();
 	f_bin_file_write.close();
 }
 
@@ -119,10 +120,10 @@ void ZIP_::out_zip() {
 	line.resize(line.size() - 8/*нулевой бит*/ - (correct_bin_code ? correct_bin_code_size : 0)/*удаление лишних битов*/);
 	
 	//запись в tmp.txt
-	f_tmpTXT_write.open(tmpTXT_path.c_str());
-	f_tmpTXT_write << line;
-
+	//f_tmpTXT_write.open(tmpTXT_path.c_str());
+	//f_tmpTXT_write << line;
+	dec_._put_line(line);
 	//закрыте файлов 
-	f_bin_file_read.close();
-	f_tmpTXT_write.close();
+	//f_bin_file_read.close();
+	//f_tmpTXT_write.close();
 }

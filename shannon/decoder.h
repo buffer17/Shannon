@@ -9,6 +9,7 @@ private:
 	long double* cumul;// массив кумул€тивных веро€тностей
 	std::string* code;// массив бинарных кодов “_“
 	int size;// два разных размера а зачем?
+	std::string fin_code; //бинарный код
 	
 public:
 	DECODER();
@@ -18,7 +19,10 @@ public:
 	void _sort_array();// сортирует массивы симоволов и счетчик по веро€тности
 	void _to_binary(long double, int, int);// должно переводить в бинарный вид кумул€тивные веро€тности
 	void _сumulat_a_code();// считает кумул€тивные веро€тности и много какие еще приколы делает
+	void _bin_merge(std::ifstream& mess_file); //представление строки в бинарный код
 
+	std::string& _get_line();
+	void _put_line(std::string&);
 
 	void _out();// в семье не без урода, быстра€ проверка, точка останова дл€ лохов - вывод в консоль дл€ пацанов
 

@@ -94,8 +94,6 @@ void DECODER::_to_binary(long double num, int temp, int cnt) {
 
 void DECODER::_Òumulat_a_code() {
 
-	size = size;
-
 	this->cumul = new long double[size];
 	this->code = new std::string[size];
 	int* temp = new int[size];// ‰ÎËÌ‡ ÍÓ‰‡
@@ -123,12 +121,26 @@ void DECODER::_Òumulat_a_code() {
 	}
 }
 
-void DECODER::_out() {
-	for (size_t i = 0; i < size; i++) {
-		std::cout << this->sym[i]<<this->cumul[i]<<" ";
-	}
-	std::cout << std::endl;
-	for (size_t i = 0; i < size; i++) {
-		std::cout << this->code[i] << std::endl;
+void DECODER::_bin_merge(std::ifstream& mess_file) {
+	std::string line;
+	if (!mess_file.is_open())
+		return;
+	mess_file.clear();
+	mess_file.seekg(0);
+	char ch;
+	while (mess_file.get(ch)) {
+		int cmp = 0;
+		for (; cmp < size; cmp++)
+			if (ch == sym[cmp])
+				fin_code += code[cmp];
 	}
 }
+
+void DECODER::_out() {
+	for (size_t i = 0; i < size; i++)
+		std::cout << this->sym[i] << this->cumul[i] << " " << this->code[i] << std::endl;
+	std::cout << std::endl <<  this->fin_code;
+}
+
+std::string& DECODER::_get_line() { return this->fin_code; }
+void DECODER::_put_line(std::string& tmp) { this->fin_code = tmp; }
