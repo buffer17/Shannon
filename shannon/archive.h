@@ -20,8 +20,6 @@ public:
 	//вывод данных в консоль
 	void out_arc();
 
-
-
 	//добавление/удаление в архив
 	void push_back(std::string);
 	void pop_back(); //удаление с конца

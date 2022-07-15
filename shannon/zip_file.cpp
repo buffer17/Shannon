@@ -20,8 +20,7 @@ char reverse_bit(char value) {
 	return mirror_tmp;
 }
 
-ZIP_::ZIP_(std::string decoder_pth, DECODER& dec,
-	std::string bin_file_pth) : 
+ZIP_::ZIP_(std::string decoder_pth, DECODER& dec, std::string bin_file_pth) : 
 	decoder_path(decoder_pth), dec_(dec), bin_file_path(bin_file_pth),
 	correct_bin_code(true), correct_bin_code_size(0) {}
 
@@ -30,19 +29,16 @@ ZIP_::~ZIP_() {
 	f_decoder_write.close();
 	f_bin_file_read.close();
 	f_bin_file_write.close();
-	//f_tmpTXT_read.close();
-	//f_tmpTXT_write.close();
 }
 
 void ZIP_::in_zip() {
 	//cout << "========================INzip\n";
-	//f_tmpTXT_read.open(tmpTXT_path.c_str());
 	string bin_line; //входная строка
 	vector <char> byte_v;
 	char byte_ = 0; //записывающий байт
 	int shift = 8; //сдвиг
-	//getline(f_tmpTXT_read, bin_line); //считываем строку
-	bin_line = dec_._get_line();
+	bin_line = dec_._get_code(); //считываем бинарный код из декодера
+
 	for (size_t i = 0; i < bin_line.length(); i++) { //пробегаемся по строке 
 		char bit = (char)(bin_line[i] - '0'); //считываем бит
 		
@@ -73,6 +69,7 @@ void ZIP_::in_zip() {
 			shift = 8;
 		}
 	}
+
 	//запись в битовый файл
 	f_bin_file_write.open(bin_file_path.c_str(), ios::binary);
 	char len = byte_v.size();
@@ -81,8 +78,6 @@ void ZIP_::in_zip() {
 	for (size_t i = 0; i < byte_v.size(); i++)
 		this->f_bin_file_write.write((char*)&byte_v[i], sizeof(char));
 
-	//закрыте файлов
-	//f_tmpTXT_read.close();
 	f_bin_file_write.close();
 }
 
@@ -120,10 +115,42 @@ void ZIP_::out_zip() {
 	line.resize(line.size() - 8/*нулевой бит*/ - (correct_bin_code ? correct_bin_code_size : 0)/*удаление лишних битов*/);
 	
 	//запись в tmp.txt
-	//f_tmpTXT_write.open(tmpTXT_path.c_str());
-	//f_tmpTXT_write << line;
-	dec_._put_line(line);
+	dec_._put_code(line);
 	//закрыте файлов 
-	//f_bin_file_read.close();
-	//f_tmpTXT_write.close();
+	f_bin_file_read.close();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+void ZIP_::in_decoder() {
+	f_decoder_write.open(decoder_path.c_str());
+	char* sym = &dec_.r_sym();
+	string* code = &dec_.r_code();
+
+	int sz;
+	sz = dec_._get_size();
+	f_decoder_write << sz << '\n';
+	for (size_t i = 0; i < sz; i++)
+		f_decoder_write << sym[i] - '0' << " " << code[i] << '\n';
+
+	f_decoder_write.close();
+}
+
+void ZIP_::out_decoder() {
+
+	f_decoder_read.open(decoder_path.c_str()); //открываем файл
+	int sz;
+	f_decoder_read >> sz;
+
+	DECODER dec_tmp(sz); //временный декодер
+	
+	char* sym = &dec_tmp.r_sym();
+	string* code = &dec_tmp.r_code();
+
+	int sym_tmp;
+	for (size_t i = 0; i < sz; i++) 
+		f_decoder_read >> sym_tmp >> code[i], sym[i] = sym_tmp + '0';
+
+	f_decoder_read.close();
+	dec_ = dec_tmp;
 }

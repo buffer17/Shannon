@@ -11,8 +11,44 @@ DECODER::DECODER() {
 	code = new std::string[size];
 }
 
+DECODER::DECODER(int sz) {
+	size = sz;
+	sym = new char[size];
+	count = new double[size];
+	cumul = new long double[size];
+	code = new std::string[size];
+}
+
+DECODER::DECODER(const DECODER& tmp) {
+	this->size = tmp.size;
+	this->sym = tmp.sym;
+	this->count = tmp.count;
+	this->cumul = tmp.cumul;
+	this->code = tmp.code;
+}
+
+DECODER& DECODER::operator=(const DECODER& tmp) {
+	this->size = tmp.size;
+	//необходимо выделить память для избежания утечки
+	sym = new char[size];
+	count = new double[size];
+	cumul = new long double[size];
+	code = new std::string[size];
+	for (size_t i = 0; i < size; i++) {
+		sym[i] = tmp.sym[i];
+		count[i] = tmp.count[i];
+		cumul[i] = tmp.cumul[i];
+		code[i] = tmp.code[i];
+	}
+
+	return *this;
+}
+
 DECODER::~DECODER() {
-	delete[] sym, count, cumul, code;
+	delete[] sym;
+	delete[] count;
+	delete[] cumul;
+	delete[] code;
 }
 
 void DECODER::_array_fill(std::ifstream& mess_file) {
@@ -136,11 +172,31 @@ void DECODER::_bin_merge(std::ifstream& mess_file) {
 	}
 }
 
+void DECODER::_sym_merge(std::ofstream& mess_file) {
+	std::string tmp_bin_code;
+
+	for (size_t i = 0; fin_code[i] != '\0'; i++) {
+		tmp_bin_code.push_back(fin_code[i]);
+		for (size_t j = 0; j < size; j++) 
+			if (!std::strcmp(tmp_bin_code.c_str(), code[j].c_str())) { //нашли совпадение в декодере
+				mess_file << sym[j]; //запись соотвветствующего символа
+				tmp_bin_code.clear(); //очистка временной строки
+				break;
+			}
+	}
+}
+
 void DECODER::_out() {
 	for (size_t i = 0; i < size; i++)
-		std::cout << this->sym[i] << this->cumul[i] << " " << this->code[i] << std::endl;
+		std::cout << this->sym[i] << " " << this->code[i] << std::endl;
 	std::cout << std::endl <<  this->fin_code;
 }
 
-std::string& DECODER::_get_line() { return this->fin_code; }
-void DECODER::_put_line(std::string& tmp) { this->fin_code = tmp; }
+std::string& DECODER::_get_code() { return this->fin_code; }
+void DECODER::_put_code(std::string& tmp) { this->fin_code = tmp; }
+
+int DECODER::_get_size() { return this->size; }
+void DECODER::_put_size(int sz) { this->size = sz; }
+
+char& DECODER::r_sym() { return *sym; }
+std::string& DECODER::r_code() { return *code; }
