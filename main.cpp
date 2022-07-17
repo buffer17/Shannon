@@ -1,3 +1,7 @@
+#pragma comment(linker,"\"/manifestdependency:type='win32' \
+name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
+processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+
 #include <Windows.h>
 #include "Header.h"
 
@@ -34,25 +38,16 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	switch (msg) {
 	case WM_COMMAND:
 		switch (wp) {
-		case OnMenuAction1:
-			MessageBoxA(hWnd, "MessageBoxText1", "MessageBoxName1", MB_OK);
+		case OnLoadFile: //контекстное меню - загрузка
+			if (GetOpenFileNameA(&ofn)) { LoadData(filename); }
 			break;
-		case OnMenuAction2:
-			MessageBoxA(hWnd, "MessageBoxText2", "MessageBoxName2", MB_OK);
+		case OnSaveFile: //контекстное меню - сохранение
+			if (GetSaveFileNameA(&ofn)) { SaveData(filename); }
 			break;
-		case OnMenuAction3:
-			MessageBoxA(hWnd, "MessageBoxText3", "MessageBoxName3", MB_OK);
+		case AboutUs: //о нас
+			MessageBoxA(hWnd, "Интерфейс - Лоншаков Максим, гр.1041\nКодировщик - Колмыкова Алёна, гр.1041\nСжатие - Мочалов Артём, гр.1041\n\n2022, СПбГУАП", "О нас", MB_OK);
 			break;
-		case OnMenuAction4:
-			MessageBoxA(hWnd, "Команда умников из ГУАПа, 2022", "About us", MB_OK);
-			break;
-		case OnButtonClick1:
-			MessageBoxA(hWnd, "ButtonText1", "ButtonTextName1", MB_OK);
-			break;
-		case OnButtonClick2:
-			MessageBoxA(hWnd, "ButtonText2", "ButtonTextName2", MB_OK);
-			break;
-		case OnExitSoftware:
+		case OnExitSoftware: //выход из приложения
 			PostQuitMessage(0);
 			break;
 		default: break;
@@ -61,6 +56,7 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	case WM_CREATE:
 		MainWndAddMenus(hWnd);
 		MainWndAddText(hWnd);
+		SetOpenFileParams(hWnd);
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);

@@ -1,15 +1,24 @@
 #pragma once
 
-#define OnMenuAction1 1
-#define OnMenuAction2 2
-#define OnMenuAction3 3
-#define OnMenuAction4 4
-#define OnButtonClick1 5
-#define OnButtonClick2 6
-#define OnExitSoftware 7
+#define OnLoadFile 1
+#define OnSaveFile 2
+#define AboutUs 3
+#define OnExitSoftware 4
+
+#define TextBufferSize 256
+
+char Buffer[TextBufferSize];
+
+HWND hEditControl;
 
 LRESULT CALLBACK SoftwareMainProcedure(HWND Hwnd, UINT msg, WPARAM wp, LPARAM lp);
 WNDCLASS NewWindowClass(HBRUSH BGColor, HCURSOR Cursor, HINSTANCE hInst, HICON Icon, LPCWSTR Name, WNDPROC Procedure);
 
 void MainWndAddMenus(HWND hWnd);
 void MainWndAddText(HWND hWnd);
+void SaveData(LPCSTR path);
+void LoadData(LPCSTR path);
+void SetOpenFileParams(HWND hWnd);
+
+char filename[256];
+OPENFILENAMEA ofn;
