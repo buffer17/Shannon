@@ -3,8 +3,7 @@
 
 using namespace std;
 
-archive::archive() : arc_path("lost_arc.txt") {}
-archive::archive(string pth) : arc_path(pth) {}
+archive::archive() : arc_path("arc\\lost_arc.txt") { CreateDirectory(L"arc", NULL); }
 
 void archive::write() {
 	//переоткрываем файл для записи
@@ -82,3 +81,17 @@ void archive::pop_by_index(int index) {
 	file_cnt -= 1;
 	write();
 }
+
+//string archive::put_file_arc(string dec_pth, ) { return this->arc_folder_path; }
+
+string archive::file_name(string path) {
+	string file;
+	//file.resize(256);
+	for (int i = path.length() - 1; i != 0; i--) {
+		if (path[i] == '\\') break;
+		file += path[i];
+	}
+	reverse(file.begin(), file.end());
+	return file;
+}
+

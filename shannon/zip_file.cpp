@@ -85,6 +85,8 @@ void ZIP_::out_zip() {
 	//cout << "========================UNzip\n";
 	//закрываем файл для записи, переоткрываем для чтения
 	f_bin_file_read.open(bin_file_path.c_str(), ios::binary);
+	if (!f_bin_file_read.is_open())
+		return;
 
 	//считываем данные
 	if (!line.empty()) //очистка строки
