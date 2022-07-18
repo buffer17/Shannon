@@ -3,15 +3,17 @@
 
 using namespace std;
 
-archive::archive() : arc_path("arc\\lost_arc.txt") { CreateDirectory(L"arc", NULL); }
+archive::archive() : arc_path("arc\\main_arc.txt") { CreateDirectory(L"arc", NULL); }
 
 void archive::write() {
 	//переоткрываем файл для записи
+	//
 	if (this->file_arc_write.is_open())
 		this->file_arc_write.close();
 	this->file_arc_write.open(this->arc_path.c_str());
 
 	//запись в архив
+	//
 	file_arc_write << file_cnt << "\n";
 	for (int i = 0; i < file_cnt; i++)
 		file_arc_write << data.at(i).c_str() << "\n";
@@ -24,13 +26,15 @@ bool archive::read() {
 	this->file_arc_read.open(this->arc_path.c_str());
 	
 	//чтение из архива
+	//
 	file_arc_read >> file_cnt;
 	if (file_cnt == 0)
 		return false;
 
-	//выделение памяти
+	//выделение памяти и чтение
+	//
 	data.resize(file_cnt);
-	for (int i = 0; i < file_cnt; i++) //чтение
+	for (int i = 0; i < file_cnt; i++)
 		file_arc_read >> data.at(i);
 	file_arc_read.close();
 
@@ -38,12 +42,6 @@ bool archive::read() {
 		return false;
 	return true;
 }
-
-void archive::out_arc() {
-	for (int i = 0; i < file_cnt; i++)
-		cout << data.at(i) << endl;
-}
-
 
 void archive::push_back(std::string pth_file) {
 	file_cnt += 1;
@@ -82,11 +80,8 @@ void archive::pop_by_index(int index) {
 	write();
 }
 
-//string archive::put_file_arc(string dec_pth, ) { return this->arc_folder_path; }
-
 string archive::file_name(string path) {
 	string file;
-	//file.resize(256);
 	for (int i = path.length() - 1; i != 0; i--) {
 		if (path[i] == '\\') break;
 		file += path[i];
@@ -95,3 +90,4 @@ string archive::file_name(string path) {
 	return file;
 }
 
+std::string archive::get_arc_path() { return this->arc_folder_path; }

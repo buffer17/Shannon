@@ -30,6 +30,7 @@ DECODER::DECODER(const DECODER& tmp) {
 DECODER& DECODER::operator=(const DECODER& tmp) {
 	this->size = tmp.size;
 	//необходимо выделить память для избежания утечки
+	//
 	sym = new char[size];
 	count = new double[size];
 	cumul = new long double[size];
@@ -87,7 +88,7 @@ void DECODER::_array_fill(std::ifstream& mess_file) {
 
 void DECODER::_sort_array() {
 
-	const double factor = 1.247; // Фактор уменьшения
+	const double factor = 1.247;	//фактор уменьшения
 	double step = size - 1;
 
 	while (step >= 1) {
@@ -100,14 +101,13 @@ void DECODER::_sort_array() {
 		step /= factor;
 	}
 	// сортировка пузырьком
-	for (size_t idx_i = 0; idx_i + 1 <size; ++idx_i) {
-		for (size_t idx_j = 0; idx_j + 1 < size - idx_i; ++idx_j) {
+	//
+	for (size_t idx_i = 0; idx_i + 1 < size; ++idx_i)
+		for (size_t idx_j = 0; idx_j + 1 < size - idx_i; ++idx_j)
 			if (this->count[idx_j + 1] > this->count[idx_j]) {
 				std::swap(this->count[idx_j], this->count[idx_j + 1]);
 				std::swap(this->sym[idx_j], this->sym[idx_j + 1]);
 			}
-		}
-	}
 }
 
 void DECODER::_to_binary(long double num, int temp, int cnt) {
@@ -132,29 +132,27 @@ void DECODER::_сumulat_a_code() {
 
 	this->cumul = new long double[size];
 	this->code = new std::string[size];
-	int* temp = new int[size];// длина кода
-	double* prob = new double[size];// обычная вероятность 
+	int* temp = new int[size];				// длина кода
+	double* prob = new double[size];		// обычная вероятность 
 
 	int value_summ = 0;
 
-	for (size_t i = 0; i < size; i++) {
+	for (size_t i = 0; i < size; i++)
 		value_summ += this->count[i];
-	}
 
-	for (size_t i = 0; i < size; i++) {
+	for (size_t i = 0; i < size; i++)
 		prob[i] = ((this->count[i]) / value_summ);
-	}
 
 	this->cumul[0] = 0;
-	for (size_t i = 1; i < size; i++) {
+	for (size_t i = 1; i < size; i++)
 		this->cumul[i] = this->cumul[i - 1] + prob[i - 1];
-	}
-	for (size_t i = 0; i < size; i++) {
+
+	for (size_t i = 0; i < size; i++)
 		temp[i] =ceil( - log2(prob[i]));
-	}
-	for (size_t i = 0; i < size; i++) {
+
+	for (size_t i = 0; i < size; i++)
 		_to_binary(cumul[i], temp[i], i);
-	}
+	
 }
 
 void DECODER::_bin_merge(std::ifstream& mess_file) {
@@ -178,18 +176,12 @@ void DECODER::_sym_merge(std::ofstream& mess_file) {
 	for (size_t i = 0; fin_code[i] != '\0'; i++) {
 		tmp_bin_code.push_back(fin_code[i]);
 		for (size_t j = 0; j < size; j++) 
-			if (!std::strcmp(tmp_bin_code.c_str(), code[j].c_str())) { //нашли совпадение в декодере
-				mess_file << sym[j]; //запись соотвветствующего символа
-				tmp_bin_code.clear(); //очистка временной строки
+			if (!std::strcmp(tmp_bin_code.c_str(), code[j].c_str())) {	//нашли совпадение в декодере
+				mess_file << sym[j];									//запись соотвветствующего символа
+				tmp_bin_code.clear();									//очистка временной строки
 				break;
 			}
 	}
-}
-
-void DECODER::_out() {
-	for (size_t i = 0; i < size; i++)
-		std::cout << this->sym[i] << " " << this->code[i] << std::endl;
-	std::cout << std::endl <<  this->fin_code;
 }
 
 std::string& DECODER::_get_code() { return this->fin_code; }

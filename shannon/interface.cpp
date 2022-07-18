@@ -7,8 +7,7 @@ void MainWndAddMenus(HWND hWnd) {
 
 	AppendMenu(RootMenu, MF_POPUP, (UINT_PTR)SubMenu, L"Файл");
 	AppendMenu(RootMenu, MF_POPUP, AboutUs, L"О нас");
-	/*AppendMenu(SubMenu, MF_STRING, OnSaveFile, L"Загрузить...");
-	AppendMenu(SubMenu, MF_STRING, OnLoadFile, L"Сохранить...");*/
+	AppendMenu(SubMenu, MF_STRING, OpenArchive, L"Открыть архив");
 	AppendMenu(SubMenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(SubMenu, MF_STRING, OnExitSoftware, L"Выйти");
 
@@ -19,14 +18,6 @@ void MainWndAddText(HWND hWnd) {
 	CreateWindowA("button", "Закодировать", WS_VISIBLE | WS_CHILD, 100, 50, 400, 80, hWnd, (HMENU)OnLoadFile, NULL, NULL);
 	CreateWindowA("button", "Раскодировать", WS_VISIBLE | WS_CHILD, 100, 200, 400, 80, hWnd, (HMENU)OnSaveFile, NULL, NULL);
 }
-
-//void LoadData(LPCSTR path) {
-//	HANDLE FileToLoad = CreateFileA(path, GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-//	DWORD bytesIterated;
-//	ReadFile(FileToLoad, Buffer_, TextBufferSize, &bytesIterated, NULL);
-//	SetWindowTextA(hEditControl, Buffer_);
-//	CloseHandle(FileToLoad);
-//}
 
 void SaveData(LPCSTR path) {
 	HANDLE FileToSave = CreateFileA(path, GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);

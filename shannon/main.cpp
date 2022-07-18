@@ -10,12 +10,15 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 using namespace std;
 
-static OPENFILENAMEA ofn;
-archive arc;
+static OPENFILENAMEA	ofn;				//для открытия txt
+static OPENFILENAMEA	ofn_arc;			//для открытия bin archive
+archive					arc;				//класс архива
 
 WNDCLASS NewWindowClass(HBRUSH, HCURSOR, HINSTANCE, HICON, LPCWSTR, WNDPROC);
 LRESULT CALLBACK SoftwareMainProcedure(HWND, UINT, WPARAM, LPARAM);
 void SetOpenFileParams(HWND hWnd);
+void SetOpenFileParams_arc(HWND hWnd);
+void SetOpenFileParams_arc(HWND);
 string decoder_name(string);
 string txtTObin_convert(string);
 string binTOtxt_convert(string);
@@ -23,7 +26,7 @@ string binTOtxt_convert(string);
 
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdshow) {
-	arc.read(); //чтение архива бинарных файлов
+	arc.read();								//чтение архива бинарных файлов
 
 	WNDCLASS SoftwareMainClass = NewWindowClass((HBRUSH)COLOR_WINDOW, LoadCursor(NULL, IDC_ARROW), hInst, LoadIcon(hInst, MAKEINTRESOURCEW(IDI_ICON1)),
 		L"MainWndClass", SoftwareMainProcedure);
@@ -57,30 +60,38 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	switch (msg) {
 	case WM_COMMAND:
 		switch (wp) {
-		case OnLoadFile: //контекстное меню - Закодировать
+		case OnLoadFile:							//контекстное меню - Закодировать
 			if (GetOpenFileNameA(&ofn)) {
 				//decoder
-				ifstream file_beg(filename); //получаем файл для кодировки
+				//
+				ifstream file_beg(filename);		//получаем файл для кодировки
 				DECODER dec;
 				dec._array_fill(file_beg);
 				dec._sort_array();
 				dec._сumulat_a_code();
 				dec._bin_merge(file_beg);
+
 				//zip
+				//
 				ZIP_ zip("arc\\" + arc.file_name(decoder_name(filename)), dec, "arc\\" + arc.file_name(txtTObin_convert(filename)));
 				zip.in_zip();
 				zip.in_decoder();
+
 				//delete old files
+				//
 				file_beg.close();
 				remove(filename);
+
 				//archive
-				arc.push_back("arc\\" + arc.file_name(txtTObin_convert(filename).c_str())); //добавляем файл в архив
-				arc.write(); //сохраняем файл архива
+				//
+				arc.push_back("arc\\" + arc.file_name(txtTObin_convert(filename).c_str()));
+				arc.write();					//сохраняем файл архива
 			}
 			break;
-		case OnSaveFile: //контекстное меню - Раскодировать
-			if (GetOpenFileNameA(&ofn)) { //открыть для раскодировки
+		case OnSaveFile:						//контекстное меню - Раскодировать
+			if (GetOpenFileNameA(&ofn_arc)) {	//открыть для раскодировки
 				//decoder
+				//
 				string filename_ = binTOtxt_convert(filename);
 				ofstream file_end(filename_);
 				DECODER dec;
@@ -89,32 +100,44 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 				zip.out_zip();
 				dec._sym_merge(file_end);
 				file_end.close();
+
 				//delete old file
+				//
 				remove(filename);
 				remove(decoder_name(filename_).c_str());
-				if (GetSaveFileNameA(&ofn)) { //сохранить в архив
+				SetOpenFileParams_arc(hWnd);
+
+				//сохранить в архив
+				//
+				if (GetSaveFileNameA(&ofn)) {	
 					bool res = rename(filename_.c_str(), binTOtxt_convert(filename).c_str());
-					if (res) //если файл не сохранён
+					if (res)					//если файл не сохранён
 						MessageBoxA(hWnd, "Error", "File not saved", MB_OK);
 				} 
 				//archive
-				arc.pop_by_name(txtTObin_convert(filename_).c_str()); //удаление из архива
+				//
+				arc.pop_by_name("arc\\" + arc.file_name(txtTObin_convert(filename_).c_str()));
 				arc.write();
 			}
 			break;
-		case AboutUs: //о нас
+		case AboutUs:							//о нас
 			MessageBoxA(hWnd, "Интерфейс - Лоншаков Максим, гр.1041\nКодировщик - Колмыкова Алена, гр.1041\nСжатие - Мочалов Артем, гр.1041\n\n2022, СПбГУАП", "О нас", MB_OK);
 			break;
-		case OnExitSoftware: //выход из приложения
+		case OpenArchive:
+			ShellExecuteA(NULL, "open", arc.get_arc_path().c_str(), NULL, NULL, SW_RESTORE);
+			break;
+		case OnExitSoftware:					//выход из приложения
 			PostQuitMessage(0);
 			break;
 		default: break;
 		}
 		break;
+
 	case WM_CREATE:
 		MainWndAddMenus(hWnd);
 		MainWndAddText(hWnd);
 		SetOpenFileParams(hWnd);
+		SetOpenFileParams_arc(hWnd);
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -123,18 +146,30 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	}
 }
 
-
 void SetOpenFileParams(HWND hWnd) {
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = hWnd;
-	ofn.lpstrFile = filename;
-	ofn.nMaxFile = sizeof(filename);
-	ofn.lpstrFilter = ".txt";
-	ofn.lpstrFileTitle = NULL;
-	ofn.nMaxFileTitle = 0;
-	ofn.lpstrInitialDir = NULL;
-	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+	ZeroMemory(&ofn, sizeof(ofn));									//зануление значений в структуре
+	ofn.lStructSize		=sizeof(ofn);								//размер структуры
+	ofn.hwndOwner		=hWnd;										//главное окно приложения
+	ofn.lpstrFile		=filename;									//буфер хранения имени файла
+	ofn.nMaxFile		=sizeof(filename);							//длина буфера
+	ofn.lpstrFilter		="Текстовый документ (*.txt)\0*.txt\0";		//тип файлов
+	ofn.lpstrFileTitle	=NULL;										//начальное имя файла
+	ofn.nMaxFileTitle	=0;											//длина начального имени
+	ofn.lpstrInitialDir	=NULL;										//начальная дирректория
+	ofn.Flags				=OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;		//флаг пути файла и сам файл
+}
+
+void SetOpenFileParams_arc(HWND hWnd) {
+	ZeroMemory(&ofn_arc, sizeof(ofn_arc)); 
+	ofn_arc.lStructSize		=sizeof(ofn_arc); 
+	ofn_arc.hwndOwner		=hWnd;
+	ofn_arc.lpstrFile		=filename;
+	ofn_arc.nMaxFile		=sizeof(filename);
+	ofn_arc.lpstrFilter		="Файл \"BIN\"\0*.bin\0";
+	ofn_arc.lpstrFileTitle	=NULL;
+	ofn_arc.nMaxFileTitle	=0;
+	ofn_arc.lpstrInitialDir =NULL;
+	ofn_arc.Flags			=OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 }
 
 string decoder_name(string last) {
