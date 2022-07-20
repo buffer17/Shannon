@@ -4,6 +4,8 @@
 #include <fstream>
 #include <Windows.h>
 
+std::string _return_exe();
+
 class archive {
 	int				file_cnt;					//число файлов
 	std::vector		<std::string> data;			//пути к файлам архива

@@ -3,7 +3,7 @@
 
 using namespace std;
 
-archive::archive() : arc_path("arc\\main_arc.txt") { CreateDirectory(L"arc", NULL); }
+archive::archive() : arc_path(_return_exe() + "arc\\main_arc.txt") { CreateDirectory(L"arc", NULL); }
 
 void archive::write() {
 	//переоткрываем файл для записи
@@ -46,7 +46,6 @@ bool archive::read() {
 void archive::push_back(std::string pth_file) {
 	file_cnt += 1;
 	data.push_back(pth_file);
-	write();
 }
 
 void archive::pop_back() {
@@ -54,7 +53,6 @@ void archive::pop_back() {
 		return;
 	file_cnt -= 1;
 	data.pop_back();
-	write();
 }
 
 void archive::pop_by_name(string remove_name) {
@@ -66,7 +64,6 @@ void archive::pop_by_name(string remove_name) {
 			data.erase(data.begin() + i);
 			file_cnt -= 1;
 		}
-	write();
 }
 
 void archive::pop_by_index(int index) {
@@ -77,7 +74,6 @@ void archive::pop_by_index(int index) {
 
 	data.erase(data.begin() + index);
 	file_cnt -= 1;
-	write();
 }
 
 string archive::file_name(string path) {
@@ -91,3 +87,21 @@ string archive::file_name(string path) {
 }
 
 std::string archive::get_arc_path() { return this->arc_folder_path; }
+
+std::string _return_exe() {
+	WCHAR buffer[MAX_PATH];
+	string path;
+	int let_cnt = 0;
+
+	GetModuleFileName(NULL, buffer, sizeof(buffer) / sizeof(buffer[0]));
+
+	while (buffer[let_cnt] != '\0') {
+		path += buffer[let_cnt];
+		let_cnt++;
+	}
+	path = std::string(path, 0, let_cnt);
+	for (int i = let_cnt; path[i - 1] != '\\'; i--) {
+		path.pop_back();
+	}
+	return path;
+}
