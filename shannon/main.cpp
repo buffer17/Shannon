@@ -23,11 +23,8 @@ string decoder_name(string);
 string txtTObin_convert(string);
 string binTOtxt_convert(string);
 
-
-
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdshow) {
 	arc.read();								//чтение архива бинарных файлов
-
 	WNDCLASS SoftwareMainClass = NewWindowClass((HBRUSH)COLOR_WINDOW, LoadCursor(NULL, IDC_ARROW), hInst, LoadIcon(hInst, MAKEINTRESOURCEW(IDI_ICON1)),
 		L"MainWndClass", SoftwareMainProcedure);
 
@@ -73,7 +70,7 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 
 				//zip
 				//
-				ZIP_ zip("arc\\" + arc.file_name(decoder_name(filename)), dec, "arc\\" + arc.file_name(txtTObin_convert(filename)));
+				ZIP_ zip(_return_exe() + "arc\\" +  arc.file_name(decoder_name(filename)), dec, _return_exe() + "arc\\" + arc.file_name(txtTObin_convert(filename)));
 				zip.in_zip();
 				zip.in_decoder();
 
@@ -84,7 +81,7 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 
 				//archive
 				//
-				arc.push_back("arc\\" + arc.file_name(txtTObin_convert(filename).c_str()));
+				arc.push_back(_return_exe() + "arc\\" + arc.file_name(txtTObin_convert(filename).c_str()));
 				arc.write();					//сохраняем файл архива
 			}
 			break;
@@ -116,7 +113,7 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 				} 
 				//archive
 				//
-				arc.pop_by_name("arc\\" + arc.file_name(txtTObin_convert(filename_).c_str()));
+				arc.pop_by_name(_return_exe() + "arc\\" + arc.file_name(txtTObin_convert(filename_).c_str()));
 				arc.write();
 			}
 			break;
